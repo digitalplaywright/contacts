@@ -10,14 +10,13 @@
   var apiKey = 'AwQTJA_bxnDpu0pIla0FAOsS';
   var scopes = ['https://www.googleapis.com/auth/contacts.readonly', 'https://www.googleapis.com/auth/gmail.readonly','https://mail.google.com/','https://www.googleapis.com/auth/gmail.modify','https://www.googleapis.com/auth/gmail.compose','https://www.googleapis.com/auth/gmail.send'];
 
-
   $(document).on("click",".googleContactsButton", function(){
     gapi.client.setApiKey(apiKey);
-    window.setTimeout(authorize);
+    window.setTimeout(authorize(handleAuthorization));
   });
 
-  function authorize() {
-    gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthorization);
+  function authorize(onReturn) {
+    gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, onReturn);
   }
 
   function handleAuthorization(authorizationResult) {
@@ -25,26 +24,16 @@
       $.get("https://www.google.com/m8/feeds/contacts/default/thin?alt=json&access_token=" + authorizationResult.access_token + "&max-results=500&v=3.0",
       function(response){
         //process the response here
+        console.log('logging contacts');
         console.log(response);
       });
     }
   }
 
-
-  function handleClientLoad() {
-    // Step 2: Reference the API key
-    gapi.client.setApiKey(apiKey);
-    window.setTimeout(checkAuth,1);
-  }
-
   $(document).on("click","#authorize", function(){
     gapi.client.setApiKey(apiKey);
-    window.setTimeout(checkAuth);
+    window.setTimeout(authorize(handleAuthResult));
   });
-
-  function checkAuth() {
-    gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
-  }
 
   /**
   * Handle response from authorization server.
@@ -54,27 +43,9 @@
   function handleAuthResult(authResult) {
     var authorizeDiv = document.getElementById('authorize');
     if (authResult && !authResult.error) {
-      // Hide auth UI, then load client library.
-      authorizeDiv.style.display = 'none';
       makeApiCall();
-    } else {
-      // Show auth UI, allowing the user to initiate authorization by
-      // clicking authorize button.
-      authorizeDiv.style.display = 'inline';
     }
   }
-
-  /**
-  * Initiate auth flow in response to user clicking authorize button.
-  *
-  * @param {Event} event Button click event.
-  */
-  function handleAuthClick(event) {
-    gapi.auth.authorize(
-      {client_id: clientId, scope: scopes, immediate: false},
-      makeApiCall);
-      return false;
-    }
 
 
     // Load the API and make an API call.  Display the results on the screen.
@@ -82,7 +53,7 @@
       // Step 4: Load the Google+ API
       gapi.client.load('gmail', 'v1', function() {
           // Web-safe base64
-          var to = 'someone@someone.nl',
+          var to = 'andreas@uber.com',
               subject = 'Hello World',
               content = 'send a Gmail.'
 
@@ -106,7 +77,8 @@
               }
           });
           request.execute(function(response){
-           console.log(response);
+            console.log('sending emails');
+            console.log(response);
          });
         });
     }
